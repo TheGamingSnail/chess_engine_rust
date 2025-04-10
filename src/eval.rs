@@ -169,22 +169,22 @@ pub fn evaluate(board: Board, color: Color) -> i32 {
     let w_queen_bitboard = queen_bitboard & white_piece_bitboard;
     let b_queen_bitboard = queen_bitboard & black_piece_bitboard;
 
-    score = score.checked_add_unsigned((w_pawn_bitboard.popcnt()) * PIECE_VALUES[0]).expect("score overflow");
-    score = score.checked_add_unsigned((w_knight_bitboard.popcnt()) * PIECE_VALUES[1]).expect("score overflow");
-    score = score.checked_add_unsigned((w_bishop_bitboard.popcnt()) * PIECE_VALUES[2]).expect("score overflow");
-    score = score.checked_add_unsigned((w_rook_bitboard.popcnt()) * PIECE_VALUES[3]).expect("score overflow");
-    score = score.checked_add_unsigned((w_queen_bitboard.popcnt()) * PIECE_VALUES[4]).expect("score overflow");
+    score += (w_pawn_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
+    score += (w_knight_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
+    score += (w_bishop_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
+    score += (w_rook_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
+    score += (w_queen_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
     
-    score = score.checked_sub_unsigned((b_pawn_bitboard.popcnt()) * PIECE_VALUES[0]).expect("score overflow");
-    score = score.checked_sub_unsigned((b_knight_bitboard.popcnt()) * PIECE_VALUES[1]).expect("score overflow");
-    score = score.checked_sub_unsigned((b_bishop_bitboard.popcnt()) * PIECE_VALUES[2]).expect("score overflow");
-    score = score.checked_sub_unsigned((b_rook_bitboard.popcnt()) * PIECE_VALUES[3]).expect("score overflow");
-    score = score.checked_sub_unsigned((b_queen_bitboard.popcnt()) * PIECE_VALUES[4]).expect("score overflow");
+    score += (b_pawn_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
+    score += (b_knight_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
+    score += (b_bishop_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
+    score += (b_rook_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
+    score += (b_queen_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
     
     if opposite_piece_count <= 7 {
         score -= force_king_to_corner(board, if color == Color::White { Color::Black } else { Color::White }, opposite_piece_count);
     }
-    score += piece_square_table_eval(&board, color);
+    score += piece_square_table_eval(&board, color, opposite_piece_count);
     let perspective: i32 = if color == Color::White { 1 } else { -1 };
     score *= perspective;
     // println!("Score: {}", score);
@@ -227,7 +227,7 @@ pub fn get_piece_value(piece: Piece) -> i32 {
     }
 }
 
-fn piece_square_table_eval(board: &Board, ai_color: Color) -> i32 {
+fn piece_square_table_eval(board: &Board, ai_color: Color, opposite_piece_count: i32) -> i32 {
     let mut eval = 0;
     for square in ALL_SQUARES.iter() {
         let piece_opt = board.piece_on(*square);
@@ -279,13 +279,6 @@ fn piece_square_table_eval(board: &Board, ai_color: Color) -> i32 {
                         }
                     }
                     Piece::King => {
-                        let white_piece_bitboard = board.color_combined(Color::White);
-                        let black_piece_bitboard = board.color_combined(Color::Black);
-                        let opposite_piece_count: i32 = if ai_color == Color::White {
-                            black_piece_bitboard.popcnt() as i32
-                        } else {
-                            white_piece_bitboard.popcnt() as i32
-                        };
                         if opposite_piece_count >= 7 {
                             if ai_color == Color::White {
                                 eval += WHITE_KING_TABLE_MID[square.to_index() as usize] as i32;
@@ -342,13 +335,6 @@ fn piece_square_table_eval(board: &Board, ai_color: Color) -> i32 {
                         }
                     }
                     Piece::King => {
-                        let white_piece_bitboard = board.color_combined(Color::White);
-                        let black_piece_bitboard = board.color_combined(Color::Black);
-                        let opposite_piece_count: i32 = if ai_color == Color::White {
-                            black_piece_bitboard.popcnt() as i32
-                        } else {
-                            white_piece_bitboard.popcnt() as i32
-                        };
                         if opposite_piece_count >= 7 {
                             if ai_color == Color::White {
                                 eval += BLACK_KING_TABLE_MID[square.to_index() as usize] as i32;
