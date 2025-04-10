@@ -27,6 +27,7 @@ lazy_static! {
 pub fn engine_move(board: Board, ai_color: Color) -> ChessMove {
     // Clear the transposition table at the start of a new move calculation
     TRANSPOSITION_TABLE.lock().unwrap().clear();
+    TRANSPOSITION_TABLE.lock().unwrap().shrink_to_fit();
     
     match search(board, ai_color, 6, i32::MIN + 1, i32::MAX).0 {
         Some(best_move) => best_move,
