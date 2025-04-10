@@ -1,8 +1,134 @@
-use chess::{Board, Color, Piece};
+use chess::{Board, Color, Piece, ALL_SQUARES, Square};
 use std::cmp;
 
 
 static PIECE_VALUES: &'static [u32] = &[100, 300, 300, 500, 900];
+
+static BLACK_PAWN_TABLE: &'static [i32] = &[ 
+ 0,  0,  0,  0,  0,  0,  0,  0,
+ 50, 50, 50, 50, 50, 50, 50, 50,
+ 10, 10, 20, 30, 30, 20, 10, 10,
+ 5,  5, 10, 25, 25, 10,  5,  5,
+ 0,  0,  0, 20, 20,  0,  0,  0,
+ 5, -5,-10,  0,  0,-10, -5,  5,
+ 5, 10, 10,-20,-20, 10, 10,  5,
+ 0,  0,  0,  0,  0,  0,  0,  0
+];
+static BLACK_KNIGHT_TABLE: &'static [i32] = &[
+-50,-40,-30,-30,-30,-30,-40,-50,
+-40,-20,  0,  0,  0,  0,-20,-40,
+-30,  0, 10, 15, 15, 10,  0,-30,
+-30,  5, 15, 20, 20, 15,  5,-30,
+-30,  0, 15, 20, 20, 15,  0,-30,
+-30,  5, 10, 15, 15, 10,  5,-30,
+-40,-20,  0,  5,  5,  0,-20,-40,
+-50,-40,-30,-30,-30,-30,-40,-50,
+];
+static BLACK_BISHOP_TABLE: &'static [i32] = &[
+    -20,-10,-10,-10,-10,-10,-10,-20,
+    -10,  0,  0,  0,  0,  0,  0,-10,
+    -10,  0,  5, 10, 10,  5,  0,-10,
+    -10,  5,  5, 10, 10,  5,  5,-10,
+    -10,  0, 10, 10, 10, 10,  0,-10,
+    -10, 10, 10, 10, 10, 10, 10,-10,
+    -10,  5,  0,  0,  0,  0,  5,-10,
+    -20,-10,-10,-10,-10,-10,-10,-20,
+];
+static BLACK_ROOK_TABLE: &'static [i32] = &[
+    0,  0,  0,  0,  0,  0,  0,  0,
+    5, 10, 10, 10, 10, 10, 10,  5,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+    0,  0,  0,  5,  5,  0,  0,  0
+];
+static BLACK_QUEEN_TABLE: &'static [i32] = &[
+    -20,-10,-10, -5, -5,-10,-10,-20,
+-10,  0,  0,  0,  0,  0,  0,-10,
+-10,  0,  5,  5,  5,  5,  0,-10,
+ -5,  0,  5,  5,  5,  5,  0, -5,
+  0,  0,  5,  5,  5,  5,  0, -5,
+-10,  5,  5,  5,  5,  5,  0,-10,
+-10,  0,  5,  0,  0,  0,  0,-10,
+-20,-10,-10, -5, -5,-10,-10,-20
+];
+static BLACK_KING_TABLE_MID: &'static [i32] = &[
+-30,-40,-40,-50,-50,-40,-40,-30,
+-30,-40,-40,-50,-50,-40,-40,-30,
+-30,-40,-40,-50,-50,-40,-40,-30,
+-30,-40,-40,-50,-50,-40,-40,-30,
+-20,-30,-30,-40,-40,-30,-30,-20,
+-10,-20,-20,-20,-20,-20,-20,-10,
+ 20, 20,  0,  0,  0,  0, 20, 20,
+ 20, 30, 10,  0,  0, 10, 30, 20
+];
+static WHITE_PAWN_TABLE: &'static [i32] = &[
+    0,  0,  0,  0,  0,  0,  0,  0,
+    5, 10, 10,-20,-20, 10, 10,  5,
+    5, -5,-10,  0,  0,-10, -5,  5,
+    0,  0,  0, 20, 20,  0,  0,  0,
+    5,  5, 10, 25, 25, 10,  5,  5,
+   10, 10, 20, 30, 30, 20, 10, 10,
+   50, 50, 50, 50, 50, 50, 50, 50,
+    0,  0,  0,  0,  0,  0,  0,  0
+];
+
+static WHITE_KNIGHT_TABLE: &'static [i32] = &[
+   -50,-40,-30,-30,-30,-30,-40,-50,
+   -40,-20,  0,  5,  5,  0,-20,-40,
+   -30,  5, 10, 15, 15, 10,  5,-30,
+   -30,  0, 15, 20, 20, 15,  0,-30,
+   -30,  5, 15, 20, 20, 15,  5,-30,
+   -30,  0, 10, 15, 15, 10,  0,-30,
+   -40,-20,  0,  0,  0,  0,-20,-40,
+   -50,-40,-30,-30,-30,-30,-40,-50
+];
+
+static WHITE_BISHOP_TABLE: &'static [i32] = &[
+   -20,-10,-10,-10,-10,-10,-10,-20,
+   -10,  5,  0,  0,  0,  0,  5,-10,
+   -10, 10, 10, 10, 10, 10, 10,-10,
+   -10,  0, 10, 10, 10, 10,  0,-10,
+   -10,  5,  5, 10, 10,  5,  5,-10,
+   -10,  0,  5, 10, 10,  5,  0,-10,
+   -10,  0,  0,  0,  0,  0,  0,-10,
+   -20,-10,-10,-10,-10,-10,-10,-20
+];
+
+static WHITE_ROOK_TABLE: &'static [i32] = &[
+    0,  0,  0,  5,  5,  0,  0,  0,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+    5, 10, 10, 10, 10, 10, 10,  5,
+    0,  0,  0,  0,  0,  0,  0,  0
+];
+
+static WHITE_QUEEN_TABLE: &'static [i32] = &[
+   -20,-10,-10, -5, -5,-10,-10,-20,
+   -10,  0,  5,  0,  0,  0,  0,-10,
+   -10,  5,  5,  5,  5,  5,  0,-10,
+     0,  0,  5,  5,  5,  5,  0, -5,
+    -5,  0,  5,  5,  5,  5,  0, -5,
+   -10,  0,  5,  5,  5,  5,  0,-10,
+   -10,  0,  0,  0,  0,  0,  0,-10,
+   -20,-10,-10, -5, -5,-10,-10,-20
+];
+
+static WHITE_KING_TABLE_MID: &'static [i32] = &[
+    20, 30, 10,  0,  0, 10, 30, 20,
+    20, 20,  0,  0,  0,  0, 20, 20,
+   -10,-20,-20,-20,-20,-20,-20,-10,
+   -20,-30,-30,-40,-40,-30,-30,-20,
+   -30,-40,-40,-50,-50,-40,-40,-30,
+   -30,-40,-40,-50,-50,-40,-40,-30,
+   -30,-40,-40,-50,-50,-40,-40,-30,
+   -30,-40,-40,-50,-50,-40,-40,-30
+];
 
 pub fn evaluate(board: Board, color: Color) -> i32 {
     // let opposite_color = if color == Color::White { Color::Black } else { Color::White };
@@ -57,8 +183,8 @@ pub fn evaluate(board: Board, color: Color) -> i32 {
     
     if opposite_piece_count <= 7 {
         score -= force_king_to_corner(board, if color == Color::White { Color::Black } else { Color::White }, opposite_piece_count);
-    
     }
+    score += piece_square_table_eval(&board, color);
     let perspective: i32 = if color == Color::White { 1 } else { -1 };
     score *= perspective;
     // println!("Score: {}", score);
@@ -99,4 +225,143 @@ pub fn get_piece_value(piece: Piece) -> i32 {
         Piece::Queen => PIECE_VALUES[4] as i32,
         Piece::King => 0, // King value is not used in evaluation
     }
+}
+
+fn piece_square_table_eval(board: &Board, ai_color: Color) -> i32 {
+    let mut eval = 0;
+    for square in ALL_SQUARES.iter() {
+        let piece_opt = board.piece_on(*square);
+        if piece_opt.is_some()
+        {
+            let piece = piece_opt.unwrap();
+            if board.color_on(*square).unwrap() == Color::White {
+                match piece
+                {
+                    Piece::Pawn => {
+                        // println!("white pawn on {:?}", square);
+                        if ai_color == Color::White {
+                            eval += WHITE_PAWN_TABLE[square.to_index() as usize] as i32;
+                        }
+                        else {
+                            eval -= WHITE_PAWN_TABLE[square.to_index() as usize] as i32;
+                        }
+                    }
+                    Piece::Knight => {
+                        if ai_color == Color::White {
+                            eval += WHITE_KNIGHT_TABLE[square.to_index() as usize] as i32;
+                        }
+                        else {
+                            eval -= WHITE_KNIGHT_TABLE[square.to_index() as usize] as i32;
+                        }
+                    }
+                    Piece::Bishop => {
+                        if ai_color == Color::White {
+                            eval += WHITE_BISHOP_TABLE[square.to_index() as usize] as i32;
+                        }
+                        else {
+                            eval -= WHITE_BISHOP_TABLE[square.to_index() as usize] as i32;
+                        }
+                    }
+                    Piece::Rook => {
+                        if ai_color == Color::White {
+                            eval += WHITE_ROOK_TABLE[square.to_index() as usize] as i32;
+                        }
+                        else {
+                            eval -= WHITE_ROOK_TABLE[square.to_index() as usize] as i32;
+                        }
+                    }
+                    Piece::Queen => {
+                        if ai_color == Color::White {
+                            eval += WHITE_QUEEN_TABLE[square.to_index() as usize] as i32;
+                        }
+                        else {
+                            eval -= WHITE_QUEEN_TABLE[square.to_index() as usize] as i32;
+                        }
+                    }
+                    Piece::King => {
+                        let white_piece_bitboard = board.color_combined(Color::White);
+                        let black_piece_bitboard = board.color_combined(Color::Black);
+                        let opposite_piece_count: i32 = if ai_color == Color::White {
+                            black_piece_bitboard.popcnt() as i32
+                        } else {
+                            white_piece_bitboard.popcnt() as i32
+                        };
+                        if opposite_piece_count >= 7 {
+                            if ai_color == Color::White {
+                                eval += WHITE_KING_TABLE_MID[square.to_index() as usize] as i32;
+                            }
+                            else {
+                                eval -= WHITE_KING_TABLE_MID[square.to_index() as usize] as i32;
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            else {
+                match piece
+                {
+                    Piece::Pawn => {
+                        if ai_color == Color::White {
+                            eval += BLACK_PAWN_TABLE[square.to_index() as usize] as i32;
+                        }
+                        else {
+                            eval -= BLACK_PAWN_TABLE[square.to_index() as usize] as i32;
+                        }
+                    }
+                    Piece::Knight => {
+                        if ai_color == Color::White {
+                            eval += BLACK_KNIGHT_TABLE[square.to_index() as usize] as i32;
+                        }
+                        else {
+                            eval -= BLACK_KNIGHT_TABLE[square.to_index() as usize] as i32;
+                        }
+                    }
+                    Piece::Bishop => {
+                        if ai_color == Color::White {
+                            eval += BLACK_BISHOP_TABLE[square.to_index() as usize] as i32;
+                        }
+                        else {
+                            eval -= BLACK_BISHOP_TABLE[square.to_index() as usize] as i32;
+                        }
+                    }
+                    Piece::Rook => {
+                        if ai_color == Color::White {
+                            eval += BLACK_ROOK_TABLE[square.to_index() as usize] as i32;
+                        }
+                        else {
+                            eval -= BLACK_ROOK_TABLE[square.to_index() as usize] as i32;
+                        }
+                    }
+                    Piece::Queen => {
+                        if ai_color == Color::White {
+                            eval += BLACK_QUEEN_TABLE[square.to_index() as usize] as i32;
+                        }
+                        else {
+                            eval -= BLACK_QUEEN_TABLE[square.to_index() as usize] as i32;
+                        }
+                    }
+                    Piece::King => {
+                        let white_piece_bitboard = board.color_combined(Color::White);
+                        let black_piece_bitboard = board.color_combined(Color::Black);
+                        let opposite_piece_count: i32 = if ai_color == Color::White {
+                            black_piece_bitboard.popcnt() as i32
+                        } else {
+                            white_piece_bitboard.popcnt() as i32
+                        };
+                        if opposite_piece_count >= 7 {
+                            if ai_color == Color::White {
+                                eval += BLACK_KING_TABLE_MID[square.to_index() as usize] as i32;
+                            }
+                            else {
+                                eval -= BLACK_KING_TABLE_MID[square.to_index() as usize] as i32;
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
+    return eval;
 }

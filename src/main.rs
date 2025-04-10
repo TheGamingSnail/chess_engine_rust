@@ -2,7 +2,8 @@ use chess::{ChessMove, Game, Square, Color, Piece};
 use std::io;
 mod engine;
 mod eval;
-
+#[macro_use]
+extern crate lazy_static;
 fn main() {
     println!("Welcome to the Chess Game!");
     println!("This is a simple chess game where you can play against a basic AI.");
@@ -64,6 +65,7 @@ fn continue_game(mut game: Game, player_color: Color, ai_color: Color) {
    }
    else
    {
+        println!("current board eval: {}", eval::evaluate(game.current_position(), ai_color));
         let ai_move = engine::engine_move(game.current_position(), ai_color);
         println!("AI's move: {}", ai_move);
         game.make_move(ai_move);
