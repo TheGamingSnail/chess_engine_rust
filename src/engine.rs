@@ -44,7 +44,7 @@ fn search(board: Board, ai_color: Color, depth: u32, mut alpha: i32, beta: i32) 
         return search_all_captures(board, ai_color, alpha, beta);
     }
     if board.status() == chess::BoardStatus::Checkmate {
-        return (None, if board.side_to_move() == ai_color { 100000 } else { -100000 });
+        return (None, if board.side_to_move() == ai_color {-100000 } else { 100000 });
     }
     if board.status() == chess::BoardStatus::Stalemate {
         return (None, 0);
@@ -91,7 +91,7 @@ fn search(board: Board, ai_color: Color, depth: u32, mut alpha: i32, beta: i32) 
         
         if new_board.status() == chess::BoardStatus::Checkmate {
             // If this move leads to checkmate, it's the best move
-            return (Some(m), if new_board.side_to_move() == ai_color { 100000 } else { -100000 });
+            return (Some(m), if new_board.side_to_move() == ai_color { -100000 } else { 100000 });
         }
         
         let (_, evaluation) = search(new_board, ai_color, depth - 1, -beta, -alpha);
