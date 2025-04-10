@@ -2,8 +2,6 @@ use chess::{ChessMove, Game, Square, Color, Piece};
 use std::io;
 mod engine;
 mod eval;
-#[macro_use]
-extern crate lazy_static;
 fn main() {
     println!("Welcome to the Chess Game!");
     println!("This is a simple chess game where you can play against a basic AI.");
