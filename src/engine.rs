@@ -1,11 +1,11 @@
 use chess::{Board, ChessMove, Color, MoveGen, Piece};
-use std::collections::HashMap;
+use std::{collections::HashMap, ptr::null};
 use crate::eval;
 
 
 pub fn engine_move(board: Board, ai_color: Color) -> ChessMove {
     // return search(board, ai_color, 3);
-        match search(board, ai_color, 6, i32::MIN + 1, i32::MAX).0 {
+        match search(board, ai_color, 6, i32::MIN + 1, i32::MAX - 10000).0 {
             Some(best_move) => best_move,
             None => {
                 // Fallback to any legal move if no best move found
@@ -14,7 +14,7 @@ pub fn engine_move(board: Board, ai_color: Color) -> ChessMove {
             }
     }
 }
-
+// how the fuck do you add null move pruning
 fn search(board: Board, ai_color: Color, depth: u32, mut alpha: i32, beta: i32) -> (Option<ChessMove>, i32) {
     if depth == 0 {
         return search_all_captures(board, ai_color, alpha, beta);
@@ -42,17 +42,24 @@ fn search(board: Board, ai_color: Color, depth: u32, mut alpha: i32, beta: i32) 
             // println!("Checkmate move found: {:?}", m);
             return (Some(m), if new_board.side_to_move() == ai_color { -100000 } else { 100000 });
         }
-        // let hash = new_board.get_hash();
-        // let mut negated_eval = 0;
-        // let mut table = TRANSPOSITION_TABLE.lock().unwrap();
-        // if table.contains_key(&hash.to_string()) {
-        //     let eval = *table.get(&hash.to_string()).unwrap();
-        //     negated_eval = -eval;
-        // } else {
-        //     let (_, evaluation) = search(new_board, ai_color, depth - 1, -beta, -alpha);
-        //     negated_eval = -evaluation;
-        //     table.insert(hash.to_string(), evaluation);
-        // }
+        let can_apply_null_move = depth >= 3 && 
+        board.checkers().popcnt() == 0;
+        // NULL MOVE PRUNING WOOOOOOOOOOOOOOOOOOO
+        // add condition here prob
+        if can_apply_null_move
+        {
+            let r = 3; // depth reduction
+            let null_beta = beta;
+            let newer_board = new_board.null_move();
+            if newer_board.is_some()
+            {
+                let (_, null_eval) = search(newer_board.unwrap(), ai_color, depth - r, -null_beta, -null_beta + 1);
+                let check_eval = -null_eval;
+                if check_eval >= beta {
+                    return (None, beta);
+                }
+            }
+        }
         let (_, evaluation) = search(new_board, ai_color, depth - 1, -beta, -alpha);
         let negated_eval = -evaluation;
         

@@ -170,21 +170,21 @@ pub fn evaluate(board: Board, color: Color) -> i32 {
     let b_queen_bitboard = queen_bitboard & black_piece_bitboard;
 
     score += (w_pawn_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
-    score += (w_knight_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
-    score += (w_bishop_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
-    score += (w_rook_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
-    score += (w_queen_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
+    score += (w_knight_bitboard.popcnt() as i32) * PIECE_VALUES[1] as i32;
+    score += (w_bishop_bitboard.popcnt() as i32) * PIECE_VALUES[2] as i32;
+    score += (w_rook_bitboard.popcnt() as i32) * PIECE_VALUES[3] as i32;
+    score += (w_queen_bitboard.popcnt() as i32) * PIECE_VALUES[4] as i32;
     
     score -= (b_pawn_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
-    score -= (b_knight_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
-    score -= (b_bishop_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
-    score -= (b_rook_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
-    score -= (b_queen_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
+    score -= (b_knight_bitboard.popcnt() as i32) * PIECE_VALUES[1] as i32;
+    score -= (b_bishop_bitboard.popcnt() as i32) * PIECE_VALUES[2] as i32;
+    score -= (b_rook_bitboard.popcnt() as i32) * PIECE_VALUES[3] as i32;
+    score -= (b_queen_bitboard.popcnt() as i32) * PIECE_VALUES[4] as i32;
     
     if opposite_piece_count <= 7 {
         score -= force_king_to_corner(board, if color == Color::White { Color::Black } else { Color::White }, opposite_piece_count);
     }
-    score += piece_square_table_eval(&board, color, opposite_piece_count);
+    score += piece_square_table_eval(&board, opposite_piece_count);
     let perspective: i32 = if color == Color::White { 1 } else { -1 };
     score *= perspective;
     // println!("Score: {}", score);
@@ -227,7 +227,7 @@ pub fn get_piece_value(piece: Piece) -> i32 {
     }
 }
 
-fn piece_square_table_eval(board: &Board, ai_color: Color, opposite_piece_count: i32) -> i32 {
+fn piece_square_table_eval(board: &Board, opposite_piece_count: i32) -> i32 {
     let mut eval = 0;
     for square in ALL_SQUARES.iter() {
         let piece_opt = board.piece_on(*square);
@@ -238,116 +238,56 @@ fn piece_square_table_eval(board: &Board, ai_color: Color, opposite_piece_count:
                 match piece
                 {
                     Piece::Pawn => {
-                        // println!("white pawn on {:?}", square);
-                        if ai_color == Color::White {
-                            eval += WHITE_PAWN_TABLE[square.to_index() as usize] as i32;
-                        }
-                        else {
-                            eval -= WHITE_PAWN_TABLE[square.to_index() as usize] as i32;
-                        }
+                        eval += WHITE_PAWN_TABLE[square.to_index() as usize] as i32;
                     }
                     Piece::Knight => {
-                        if ai_color == Color::White {
-                            eval += WHITE_KNIGHT_TABLE[square.to_index() as usize] as i32;
-                        }
-                        else {
-                            eval -= WHITE_KNIGHT_TABLE[square.to_index() as usize] as i32;
-                        }
+                        eval += WHITE_KNIGHT_TABLE[square.to_index() as usize] as i32;
                     }
                     Piece::Bishop => {
-                        if ai_color == Color::White {
-                            eval += WHITE_BISHOP_TABLE[square.to_index() as usize] as i32;
-                        }
-                        else {
-                            eval -= WHITE_BISHOP_TABLE[square.to_index() as usize] as i32;
-                        }
+                        eval += WHITE_BISHOP_TABLE[square.to_index() as usize] as i32;
                     }
                     Piece::Rook => {
-                        if ai_color == Color::White {
-                            eval += WHITE_ROOK_TABLE[square.to_index() as usize] as i32;
-                        }
-                        else {
-                            eval -= WHITE_ROOK_TABLE[square.to_index() as usize] as i32;
-                        }
+                        eval += WHITE_ROOK_TABLE[square.to_index() as usize] as i32;
                     }
                     Piece::Queen => {
-                        if ai_color == Color::White {
-                            eval += WHITE_QUEEN_TABLE[square.to_index() as usize] as i32;
-                        }
-                        else {
-                            eval -= WHITE_QUEEN_TABLE[square.to_index() as usize] as i32;
-                        }
+                        eval += WHITE_QUEEN_TABLE[square.to_index() as usize] as i32;
                     }
                     Piece::King => {
                         if opposite_piece_count >= 7 {
-                            if ai_color == Color::White {
-                                eval += WHITE_KING_TABLE_MID[square.to_index() as usize] as i32;
-                            }
-                            else {
-                                eval -= WHITE_KING_TABLE_MID[square.to_index() as usize] as i32;
-                            }
+                            eval += WHITE_KING_TABLE_MID[square.to_index() as usize] as i32;
                         }
                     }
                     _ => {}
                 }
             }
-            else {
+            else
+            {
                 match piece
                 {
                     Piece::Pawn => {
-                        if ai_color == Color::White {
-                            eval += BLACK_PAWN_TABLE[square.to_index() as usize] as i32;
-                        }
-                        else {
-                            eval -= BLACK_PAWN_TABLE[square.to_index() as usize] as i32;
-                        }
+                        eval -= BLACK_PAWN_TABLE[square.to_index() as usize] as i32;
                     }
                     Piece::Knight => {
-                        if ai_color == Color::White {
-                            eval += BLACK_KNIGHT_TABLE[square.to_index() as usize] as i32;
-                        }
-                        else {
-                            eval -= BLACK_KNIGHT_TABLE[square.to_index() as usize] as i32;
-                        }
+                        eval -= BLACK_KNIGHT_TABLE[square.to_index() as usize] as i32;
                     }
                     Piece::Bishop => {
-                        if ai_color == Color::White {
-                            eval += BLACK_BISHOP_TABLE[square.to_index() as usize] as i32;
-                        }
-                        else {
-                            eval -= BLACK_BISHOP_TABLE[square.to_index() as usize] as i32;
-                        }
+                        eval -= BLACK_BISHOP_TABLE[square.to_index() as usize] as i32;
                     }
                     Piece::Rook => {
-                        if ai_color == Color::White {
-                            eval += BLACK_ROOK_TABLE[square.to_index() as usize] as i32;
-                        }
-                        else {
-                            eval -= BLACK_ROOK_TABLE[square.to_index() as usize] as i32;
-                        }
+                        eval -= BLACK_ROOK_TABLE[square.to_index() as usize] as i32;
                     }
                     Piece::Queen => {
-                        if ai_color == Color::White {
-                            eval += BLACK_QUEEN_TABLE[square.to_index() as usize] as i32;
-                        }
-                        else {
-                            eval -= BLACK_QUEEN_TABLE[square.to_index() as usize] as i32;
-                        }
+                        eval -= BLACK_QUEEN_TABLE[square.to_index() as usize] as i32;
                     }
                     Piece::King => {
                         if opposite_piece_count >= 7 {
-                            if ai_color == Color::White {
-                                eval += BLACK_KING_TABLE_MID[square.to_index() as usize] as i32;
-                            }
-                            else {
-                                eval -= BLACK_KING_TABLE_MID[square.to_index() as usize] as i32;
-                            }
+                            eval -= BLACK_KING_TABLE_MID[square.to_index() as usize] as i32;
                         }
                     }
                     _ => {}
                 }
             }
         }
-    }
-    return eval;
+    }  
+    return eval; 
 }
