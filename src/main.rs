@@ -1,5 +1,6 @@
 use chess::{ChessMove, Game, Square, Color, Piece};
 use std::io;
+use std::time::Instant;
 mod engine;
 mod eval;
 fn main() {
@@ -64,7 +65,10 @@ fn continue_game(mut game: Game, player_color: Color, ai_color: Color) {
    else
    {
         println!("current board eval: {}", eval::evaluate(game.current_position(), ai_color));
+        let timer = Instant::now();
         let ai_move = engine::engine_move(game.current_position(), ai_color);
+        let elapsed = timer.elapsed();
+        println!("Time taken for AI move: {:?}", elapsed);
         println!("AI's move: {}", ai_move);
         game.make_move(ai_move);
         continue_game(game, player_color, ai_color);
