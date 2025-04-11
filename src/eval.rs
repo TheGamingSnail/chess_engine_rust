@@ -175,11 +175,11 @@ pub fn evaluate(board: Board, color: Color) -> i32 {
     score += (w_rook_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
     score += (w_queen_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
     
-    score += (b_pawn_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
-    score += (b_knight_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
-    score += (b_bishop_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
-    score += (b_rook_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
-    score += (b_queen_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
+    score -= (b_pawn_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
+    score -= (b_knight_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
+    score -= (b_bishop_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
+    score -= (b_rook_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
+    score -= (b_queen_bitboard.popcnt() as i32) * PIECE_VALUES[0] as i32;
     
     if opposite_piece_count <= 7 {
         score -= force_king_to_corner(board, if color == Color::White { Color::Black } else { Color::White }, opposite_piece_count);
