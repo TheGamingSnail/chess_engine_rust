@@ -129,8 +129,8 @@ static WHITE_KING_TABLE_MID: &'static [i32] = &[
    -30,-40,-40,-50,-50,-40,-40,-30,
    -30,-40,-40,-50,-50,-40,-40,-30
 ];
-
 pub fn evaluate(board: Board, color: Color) -> i32 {
+    
     // let opposite_color = if color == Color::White { Color::Black } else { Color::White };
     // println!("{:?}", new_board.status());
     if board.status() == chess::BoardStatus::Stalemate {

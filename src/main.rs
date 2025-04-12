@@ -3,7 +3,9 @@ use std::io;
 use std::time::Instant;
 mod engine;
 mod eval;
+
 fn main() {
+    
     println!("Welcome to the Chess Game!");
     println!("This is a simple chess game where you can play against a basic AI.");
     println!("The AI will make random moves, and you can enter your moves in standard algebraic notation.");
